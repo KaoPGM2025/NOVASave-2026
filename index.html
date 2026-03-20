@@ -2,300 +2,336 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NOVASave2026 V2.2 - AI Mali Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NOVASave2026 V2.4 - AI Mali Evolution</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap');
         
         body {
             font-family: 'Kanit', sans-serif;
-            transition: background-color 0.3s, color 0.3s;
+            transition: all 0.3s ease;
             -webkit-tap-highlight-color: transparent;
         }
 
-        .dark { background-color: #0f172a; color: #f8fafc; }
-        .light { background-color: #f8fafc; color: #1e293b; }
+        .dark { background-color: #0b0e14; color: #f1f5f9; }
+        .light { background-color: #f8fafc; color: #0f172a; }
 
-        .card-grad {
-            background: linear-gradient(135deg, #2563eb 0%, #4338ca 100%);
-            box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4);
+        /* UI Elements */
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-top: 1px solid rgba(255,255,255,0.3);
+        }
+        .dark .glass-nav {
+            background: rgba(15, 23, 42, 0.8);
+            border-top: 1px solid rgba(255,255,255,0.05);
         }
 
-        .nav-btn { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .nav-active { color: #3b82f6; transform: translateY(-5px); }
-        .nav-active i { filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.5)); }
+        .rank-bronze { background: linear-gradient(90deg, #cd7f32, #b87333); }
+        .rank-silver { background: linear-gradient(90deg, #c0c0c0, #a9a9a9); }
+        .rank-gold { background: linear-gradient(90deg, #ffd700, #daa520); }
+        .rank-platinum { background: linear-gradient(90deg, #e5e4e2, #b4b4b4); text-shadow: 0 0 5px rgba(255,255,255,0.5); }
+        .rank-diamond { background: linear-gradient(90deg, #b9f2ff, #2563eb); color: #fff; }
+        .rank-regen { background: linear-gradient(45deg, #ff0080, #7928ca, #ff0080); background-size: 200% 200%; animation: regen-glow 3s infinite; }
 
-        .rank-badge {
-            padding: 4px 12px;
-            border-radius: 9999px;
-            font-size: 0.7rem;
-            font-weight: 800;
-            letter-spacing: 0.5px;
+        @keyframes regen-glow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .main-card {
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            box-shadow: 0 20px 25px -5px rgba(37, 99, 235, 0.3);
+        }
+
+        .view-content { transition: transform 0.3s ease, opacity 0.3s ease; }
+        .hidden { display: none; opacity: 0; transform: translateY(10px); }
+
+        .cat-btn.active { background-color: #2563eb; color: white; transform: scale(1.05); }
+        
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(0.5);
+        }
     </style>
 </head>
 <body class="light">
 
-    <div id="app" class="min-h-screen pb-28">
+    <div id="app" class="min-h-screen pb-24">
         
-        <!-- Header Section -->
-        <header class="p-6 flex justify-between items-center max-w-xl mx-auto">
+        <!-- TOP HEADER -->
+        <header class="p-5 flex justify-between items-center max-w-lg mx-auto sticky top-0 z-40 glass-nav mb-2 rounded-b-3xl shadow-sm">
             <div class="flex items-center gap-3">
                 <div class="relative">
-                    <img id="user-avatar" src="https://lh3.googleusercontent.com/a/default-user=s120-c" alt="Profile" class="w-14 h-14 rounded-2xl object-cover border-2 border-blue-500 p-0.5">
-                    <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-2 border-white dark:border-slate-900 rounded-full"></div>
+                    <img id="profile-img" src="https://lh3.googleusercontent.com/a/default-user=s120-c" class="w-11 h-11 rounded-full border-2 border-blue-500 p-0.5 object-cover">
+                    <div class="absolute -bottom-1 -right-1 bg-green-500 w-3.5 h-3.5 border-2 border-white rounded-full"></div>
                 </div>
                 <div>
-                    <h2 id="user-name" class="font-bold text-lg">Loading...</h2>
-                    <span id="rank-badge" class="rank-badge bg-slate-400 text-white">BRONZE</span>
+                    <h1 id="display-name" class="font-bold text-sm leading-none mb-1">ยินดีต้อนรับ</h1>
+                    <div id="rank-tag" class="text-[9px] font-black px-2 py-0.5 rounded-full text-white uppercase tracking-wider rank-bronze">BRONZE</div>
                 </div>
             </div>
             <div class="text-right">
-                <p class="text-[10px] uppercase tracking-widest opacity-50">Version</p>
-                <p class="text-xs font-bold text-blue-600">20/03/2026 V2.2</p>
+                <p class="text-[9px] font-bold text-blue-600 opacity-80 uppercase tracking-widest">Update 20/03/2026</p>
+                <p class="text-[11px] font-black text-slate-400">V2.4 PRO</p>
             </div>
         </header>
 
-        <!-- Main Content Area -->
-        <main class="max-w-xl mx-auto px-6">
+        <!-- MAIN CONTAINER -->
+        <main class="max-w-md mx-auto px-5 pt-2">
             
-            <!-- VIEW: DASHBOARD -->
+            <!-- 1. DASHBOARD -->
             <section id="view-dashboard" class="view-content">
-                <div class="card-grad p-8 rounded-[2.5rem] text-white mb-8 relative overflow-hidden">
+                <div class="main-card rounded-[2.5rem] p-7 text-white relative overflow-hidden mb-6">
                     <div class="absolute top-0 right-0 p-4 opacity-10">
-                        <i class="fas fa-wallet text-8xl rotate-12"></i>
+                        <i class="fas fa-vault text-8xl"></i>
                     </div>
-                    <p class="text-blue-100 text-sm mb-1">ยอดเงินออมปัจจุบัน</p>
-                    <h1 class="text-4xl font-extrabold tracking-tight">฿ <span id="total-savings">0.00</span></h1>
+                    <p class="text-xs font-medium text-blue-100 mb-1 opacity-70">เงินออมสะสม (รวมทั้งหมด)</p>
+                    <h2 class="text-4xl font-black mb-6 tracking-tight">฿<span id="stat-total">0.00</span></h2>
                     
-                    <div class="mt-8 bg-black/10 p-4 rounded-2xl backdrop-blur-sm">
-                        <div class="flex justify-between text-xs mb-2">
-                            <span>เป้าหมาย: <span id="goal-val">0</span></span>
-                            <span id="goal-pct">0%</span>
+                    <div class="bg-black/10 backdrop-blur-md p-4 rounded-3xl border border-white/10">
+                        <div class="flex justify-between items-end mb-2">
+                            <span class="text-[10px] font-bold opacity-80">PROGRESS TO GOAL</span>
+                            <span class="text-xs font-black"><span id="stat-pct">0</span>%</span>
                         </div>
-                        <div class="w-full bg-white/20 rounded-full h-2">
-                            <div id="goal-bar" class="bg-white h-2 rounded-full transition-all duration-1000" style="width: 0%"></div>
+                        <div class="w-full bg-white/20 h-2.5 rounded-full overflow-hidden">
+                            <div id="goal-progress" class="bg-white h-full transition-all duration-1000 ease-out" style="width: 0%"></div>
+                        </div>
+                        <div class="mt-2 flex justify-between text-[10px] font-bold">
+                            <span>฿0</span>
+                            <span>เป้าหมาย ฿<span id="stat-goal">0</span></span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Stats Chart -->
-                <div class="bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-sm mb-6 border border-slate-100 dark:border-slate-700">
-                    <h3 class="font-bold mb-4 flex items-center justify-between">
-                        <span><i class="fas fa-chart-pie text-blue-500 mr-2"></i>สถิติการออม</span>
-                        <span class="text-[10px] text-slate-400 font-normal">เรียลไทม์</span>
-                    </h3>
-                    <canvas id="savingsChart" height="180"></canvas>
-                </div>
-
-                <!-- AI Mali Suggestion -->
-                <div class="bg-blue-50 dark:bg-blue-900/20 p-5 rounded-2xl border-l-4 border-blue-500">
-                    <div class="flex items-center gap-2 mb-2">
-                        <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-[10px]">
-                            <i class="fas fa-robot"></i>
-                        </div>
-                        <h4 class="text-sm font-bold text-blue-700 dark:text-blue-400">AI-Mali วิเคราะห์ส่วนตัว</h4>
+                <!-- AI MALI ANALYSIS -->
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700 mb-6 flex gap-4 items-center">
+                    <div class="w-14 h-14 bg-blue-50 dark:bg-blue-900/40 rounded-full flex-shrink-0 flex items-center justify-center relative">
+                        <i class="fas fa-robot text-2xl text-blue-600"></i>
+                        <span class="absolute top-0 right-0 block h-2.5 w-2.5 rounded-full bg-blue-400 animate-ping"></span>
                     </div>
-                    <p id="ai-mali-text" class="text-xs leading-relaxed opacity-80">กำลังประมวลผลพฤติกรรมการออมของคุณ...</p>
-                </div>
-            </section>
-
-            <!-- VIEW: ADD SAVINGS -->
-            <section id="view-add" class="view-content hidden">
-                <h2 class="text-2xl font-bold mb-6">บันทึกเงินออมใหม่</h2>
-                <div class="bg-white dark:bg-slate-800 p-8 rounded-[2rem] shadow-sm">
-                    <div class="space-y-5">
-                        <div>
-                            <label class="text-xs font-bold text-slate-400 uppercase ml-1">จำนวนเงิน</label>
-                            <input type="number" id="input-amount" step="0.01" class="w-full mt-1 p-4 bg-slate-100 dark:bg-slate-700 rounded-2xl text-2xl font-bold focus:ring-2 ring-blue-500 outline-none" placeholder="0.00">
-                        </div>
-                        <div>
-                            <label class="text-xs font-bold text-slate-400 uppercase ml-1">หมวดหมู่</label>
-                            <div class="grid grid-cols-2 gap-2 mt-1">
-                                <button onclick="selectCat(this)" class="cat-btn p-3 bg-blue-500 text-white rounded-xl text-sm font-medium">ทั่วไป</button>
-                                <button onclick="selectCat(this)" class="cat-btn p-3 bg-slate-100 dark:bg-slate-700 rounded-xl text-sm font-medium">เงินเดือน</button>
-                                <button onclick="selectCat(this)" class="cat-btn p-3 bg-slate-100 dark:bg-slate-700 rounded-xl text-sm font-medium">รางวัล</button>
-                                <button onclick="selectCat(this)" class="cat-btn p-3 bg-slate-100 dark:bg-slate-700 rounded-xl text-sm font-medium">เก็บออม</button>
-                            </div>
-                            <input type="hidden" id="selected-category" value="ทั่วไป">
-                        </div>
-                        <div>
-                            <label class="text-xs font-bold text-slate-400 uppercase ml-1">วันที่</label>
-                            <input type="date" id="input-date" class="w-full mt-1 p-4 bg-slate-100 dark:bg-slate-700 rounded-2xl outline-none">
-                        </div>
-                        <div>
-                            <label class="text-xs font-bold text-slate-400 uppercase ml-1">หมายเหตุ</label>
-                            <input type="text" id="input-note" class="w-full mt-1 p-4 bg-slate-100 dark:bg-slate-700 rounded-2xl outline-none" placeholder="บันทึกสั้นๆ...">
-                        </div>
-                        <button onclick="handleSave()" class="w-full bg-blue-600 text-white p-5 rounded-2xl font-bold text-lg shadow-lg shadow-blue-500/30 active:scale-95 transition">
-                            <i class="fas fa-check-circle mr-2"></i> บันทึกข้อมูล
-                        </button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- VIEW: HISTORY -->
-            <section id="view-history" class="view-content hidden">
-                <div class="flex justify-between items-end mb-6">
                     <div>
-                        <h2 class="text-2xl font-bold">ประวัติการออม</h2>
-                        <p class="text-[10px] text-red-500 font-bold uppercase mt-1 tracking-tighter">* ระบบแสดงผลย้อนหลัง 24 ชั่วโมงเท่านั้น</p>
+                        <h4 class="text-[11px] font-black text-blue-500 uppercase tracking-tighter mb-1">Mali AI Analysis</h4>
+                        <p id="mali-msg" class="text-xs leading-relaxed text-slate-500 dark:text-slate-400">กำลังประมวลผลข้อมูลการออมของคุณ...</p>
                     </div>
                 </div>
-                <div id="history-container" class="space-y-3">
-                    <!-- Dynamic Items -->
+
+                <!-- CHART -->
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xs font-black uppercase tracking-widest"><i class="fas fa-chart-pie mr-2 text-blue-500"></i>สถิติรายสัปดาห์</h3>
+                        <span class="text-[9px] bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded-md font-bold">LIVE SYNC</span>
+                    </div>
+                    <canvas id="maliChart" height="150"></canvas>
                 </div>
             </section>
 
-            <!-- VIEW: GOAL -->
-            <section id="view-goal" class="view-content hidden">
-                <h2 class="text-2xl font-bold mb-6">เป้าหมายของฉัน</h2>
-                <div class="bg-white dark:bg-slate-800 p-8 rounded-[2rem] shadow-sm">
-                    <div class="text-center mb-6">
-                        <div class="inline-block p-4 bg-indigo-100 dark:bg-indigo-900/40 rounded-full mb-4">
-                            <i class="fas fa-bullseye text-3xl text-indigo-600"></i>
+            <!-- 2. ADD SAVING -->
+            <section id="view-add" class="view-content hidden">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/30">
+                        <i class="fas fa-plus"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-black text-lg">เพิ่มรายการออม</h2>
+                        <p class="text-[10px] text-slate-400 uppercase font-bold tracking-widest">New Transaction</p>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-[2.5rem] shadow-sm space-y-5">
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block ml-1">ระบุจำนวนเงิน (THB)</label>
+                        <input type="number" id="inp-amount" placeholder="0.00" class="w-full bg-slate-50 dark:bg-slate-700 p-5 rounded-3xl text-3xl font-black text-center outline-none border-2 border-transparent focus:border-blue-500 transition-all">
+                    </div>
+
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block ml-1">เลือกหมวดหมู่</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="setCat('ทั่วไป', this)" class="cat-opt p-3 rounded-2xl bg-slate-100 dark:bg-slate-700 text-[10px] font-bold active">ทั่วไป</button>
+                            <button onclick="setCat('รายได้พิเศษ', this)" class="cat-opt p-3 rounded-2xl bg-slate-100 dark:bg-slate-700 text-[10px] font-bold">รายได้พิเศษ</button>
+                            <button onclick="setCat('ของขวัญ', this)" class="cat-opt p-3 rounded-2xl bg-slate-100 dark:bg-slate-700 text-[10px] font-bold">ของขวัญ</button>
                         </div>
-                        <h3 class="text-xl font-bold">คุณต้องการออมเท่าไหร่?</h3>
+                        <input type="hidden" id="inp-cat" value="ทั่วไป">
                     </div>
-                    <input type="number" id="input-goal" class="w-full p-5 bg-slate-100 dark:bg-slate-700 rounded-2xl text-3xl text-center font-bold outline-none mb-6" placeholder="5,000">
-                    <button onclick="updateGoal()" class="w-full bg-indigo-600 text-white p-4 rounded-2xl font-bold">ยืนยันเป้าหมาย</button>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block ml-1">วันที่</label>
+                            <input type="date" id="inp-date" class="w-full bg-slate-50 dark:bg-slate-700 p-3 rounded-2xl text-xs font-bold outline-none">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block ml-1">หมายเหตุ</label>
+                            <input type="text" id="inp-note" placeholder="สั้นๆ..." class="w-full bg-slate-50 dark:bg-slate-700 p-3 rounded-2xl text-xs font-bold outline-none">
+                        </div>
+                    </div>
+
+                    <button onclick="saveTransaction()" class="w-full bg-blue-600 text-white p-5 rounded-3xl font-black shadow-xl shadow-blue-600/30 active:scale-95 transition-all">
+                        บันทึกสำเร็จทันที <i class="fas fa-paper-plane ml-2"></i>
+                    </button>
                 </div>
             </section>
 
-            <!-- VIEW: SETTINGS -->
+            <!-- 3. HISTORY -->
+            <section id="view-history" class="view-content hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="font-black text-lg">ประวัติ 24 ชม.</h2>
+                        <p class="text-[9px] text-red-500 font-bold uppercase tracking-tighter">*ลบอัตโนมัติ ไม่กระทบยอดรวม</p>
+                    </div>
+                    <div class="w-10 h-10 bg-slate-100 dark:bg-slate-700 rounded-2xl flex items-center justify-center">
+                        <i class="fas fa-clock-rotate-left text-slate-400"></i>
+                    </div>
+                </div>
+                <div id="history-list" class="space-y-3">
+                    <!-- History Items -->
+                </div>
+            </section>
+
+            <!-- 4. GOAL SETTING -->
+            <section id="view-goal" class="view-content hidden">
+                <h2 class="font-black text-lg mb-6">ตั้งเป้าหมายออมเงิน</h2>
+                <div class="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] shadow-sm text-center">
+                    <div class="w-20 h-20 bg-blue-50 dark:bg-blue-900/40 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-trophy text-3xl text-blue-600"></i>
+                    </div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">เป้าหมายเงินเก็บที่คุณต้องการ</p>
+                    <input type="number" id="inp-goal-val" class="w-full bg-transparent text-4xl font-black text-center outline-none border-b-4 border-blue-500 pb-2 mb-8" placeholder="0">
+                    <button onclick="saveGoal()" class="w-full bg-slate-900 dark:bg-blue-600 text-white p-5 rounded-3xl font-black shadow-lg">ยืนยันเป้าหมาย</button>
+                </div>
+            </section>
+
+            <!-- 5. SETTINGS -->
             <section id="view-settings" class="view-content hidden">
-                <h2 class="text-2xl font-bold mb-6">ตั้งค่าระบบ</h2>
+                <h2 class="font-black text-lg mb-6">ตั้งค่าระบบ</h2>
                 
-                <div class="bg-white dark:bg-slate-800 rounded-[2rem] overflow-hidden shadow-sm border border-slate-100 dark:border-slate-700">
+                <div class="bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-sm overflow-hidden border border-slate-100 dark:border-slate-700">
                     <!-- Theme Toggle -->
                     <div class="p-5 flex justify-between items-center border-b dark:border-slate-700">
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-amber-100 dark:bg-slate-700 rounded-xl flex items-center justify-center text-amber-600 dark:text-amber-400">
-                                <i class="fas fa-sun dark:hidden"></i>
-                                <i class="fas fa-moon hidden dark:block"></i>
+                            <div class="w-10 h-10 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-moon"></i>
                             </div>
-                            <div>
-                                <p class="font-bold text-sm">โหมดการแสดงผล</p>
-                                <p class="text-[10px] opacity-50">สลับ มืด / สว่าง</p>
-                            </div>
+                            <span class="text-xs font-bold">โหมดกลางคืน (Dark Mode)</span>
                         </div>
-                        <button onclick="toggleMode()" class="w-14 h-8 bg-slate-200 dark:bg-blue-600 rounded-full p-1 transition-all relative">
-                            <div class="w-6 h-6 bg-white rounded-full absolute top-1 left-1 dark:left-7 transition-all"></div>
+                        <button onclick="toggleDark()" id="dark-toggle" class="w-12 h-6 bg-slate-200 dark:bg-blue-600 rounded-full relative transition-all">
+                            <div class="w-4 h-4 bg-white rounded-full absolute top-1 left-1 dark:left-7 transition-all"></div>
                         </button>
                     </div>
 
-                    <!-- Profile Edit -->
+                    <!-- Profile Name -->
                     <div class="p-5 border-b dark:border-slate-700">
-                        <p class="text-[10px] font-bold text-blue-500 uppercase mb-3">โปรไฟล์ผู้ใช้งาน</p>
-                        <div class="space-y-3">
-                            <input type="text" id="set-name" class="w-full p-3 bg-slate-50 dark:bg-slate-700 rounded-xl outline-none text-sm" placeholder="ชื่อของคุณ">
-                            <select id="set-avatar" class="w-full p-3 bg-slate-50 dark:bg-slate-700 rounded-xl outline-none text-sm">
-                                <option value="https://lh3.googleusercontent.com/a/default-user=s120-c">Google Default</option>
-                                <option value="https://www.gstatic.com/images/branding/product/2x/avatar_square_blue_120dp.png">Google Member A</option>
-                                <option value="https://www.gstatic.com/images/branding/product/2x/avatar_square_green_120dp.png">Google Member B</option>
-                            </select>
-                            <button onclick="saveProfile()" class="w-full py-2 bg-blue-500 text-white rounded-lg text-xs font-bold">บันทึกโปรไฟล์</button>
+                        <label class="text-[10px] font-black text-blue-500 uppercase block mb-3">ชื่อผู้ใช้งาน</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="set-name" class="flex-1 bg-slate-50 dark:bg-slate-700 p-3 rounded-xl text-xs font-bold outline-none" placeholder="ระบุชื่อ...">
+                            <button onclick="updateProfile()" class="bg-blue-600 text-white px-4 rounded-xl text-[10px] font-black uppercase">Save</button>
                         </div>
                     </div>
 
-                    <!-- System Actions -->
-                    <div class="p-5 bg-slate-50 dark:bg-slate-800/50">
-                        <button onclick="syncFromCloud()" class="w-full mb-3 flex items-center justify-between p-4 bg-white dark:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600">
-                            <span class="text-sm font-bold"><i class="fas fa-cloud-download-alt mr-2 text-emerald-500"></i>อัปเดตข้อมูลจาก Cloud</span>
-                            <i class="fas fa-chevron-right text-[10px] opacity-30"></i>
+                    <!-- Profile Image -->
+                    <div class="p-5 border-b dark:border-slate-700">
+                        <label class="text-[10px] font-black text-blue-500 uppercase block mb-3">รูปโปรไฟล์ (Google Styles)</label>
+                        <div class="grid grid-cols-4 gap-2">
+                            <img onclick="setAvatar(this.src)" src="https://lh3.googleusercontent.com/a/default-user=s120-c" class="rounded-lg cursor-pointer border-2 border-blue-500">
+                            <img onclick="setAvatar(this.src)" src="https://www.gstatic.com/images/branding/product/2x/avatar_square_blue_120dp.png" class="rounded-lg cursor-pointer border-2 border-transparent hover:border-blue-300">
+                            <img onclick="setAvatar(this.src)" src="https://www.gstatic.com/images/branding/product/2x/avatar_square_green_120dp.png" class="rounded-lg cursor-pointer border-2 border-transparent hover:border-blue-300">
+                            <img onclick="setAvatar(this.src)" src="https://www.gstatic.com/images/branding/product/2x/avatar_square_grey_120dp.png" class="rounded-lg cursor-pointer border-2 border-transparent hover:border-blue-300">
+                        </div>
+                    </div>
+
+                    <!-- Data Management -->
+                    <div class="p-5 space-y-3 bg-slate-50/50 dark:bg-transparent">
+                        <button onclick="syncData()" class="w-full p-4 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-2xl flex justify-between items-center group active:scale-95 transition">
+                            <span class="text-xs font-bold"><i class="fas fa-cloud-arrow-down mr-2 text-blue-500 group-hover:rotate-12"></i>อัปเดตข้อมูลจาก Cloud (เก่า+ใหม่)</span>
+                            <i class="fas fa-chevron-right text-[10px] opacity-20"></i>
                         </button>
-                        <button onclick="confirmClear()" class="w-full flex items-center justify-between p-4 bg-red-50 dark:bg-red-900/10 rounded-xl border border-red-100 dark:border-red-900/30 text-red-500">
-                            <span class="text-sm font-bold"><i class="fas fa-trash-alt mr-2"></i>ล้างข้อมูลทั้งหมด</span>
+                        <button onclick="clearAll()" class="w-full p-4 bg-white dark:bg-slate-700 border border-red-100 dark:border-red-900/20 rounded-2xl flex justify-between items-center text-red-500 active:scale-95 transition">
+                            <span class="text-xs font-bold"><i class="fas fa-trash-can mr-2"></i>ล้างข้อมูลทั้งหมด</span>
+                            <i class="fas fa-triangle-exclamation text-[10px] opacity-30"></i>
                         </button>
                     </div>
                 </div>
+                <p class="text-center text-[8px] font-black text-slate-300 uppercase mt-10 tracking-[0.3em]">NOVASave Enterprise Edition</p>
             </section>
-
         </main>
 
-        <!-- Navigation Bar -->
-        <nav class="fixed bottom-6 left-6 right-6 max-w-xl mx-auto bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl border border-white/20 dark:border-slate-700 rounded-[2rem] p-3 flex justify-around items-center shadow-2xl z-50">
-            <button onclick="navigate('dashboard')" id="btn-dashboard" class="nav-btn nav-active flex flex-col items-center gap-1">
-                <i class="fas fa-th-large text-xl"></i>
-                <span class="text-[9px] font-bold">หน้าหลัก</span>
+        <!-- NAVIGATION -->
+        <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md glass-nav rounded-[2.5rem] shadow-2xl p-2.5 flex justify-around items-center z-50">
+            <button onclick="nav('dashboard')" id="nav-dashboard" class="flex flex-col items-center gap-1 opacity-40 transition-all text-blue-600">
+                <i class="fas fa-house-chimney text-lg"></i>
+                <span class="text-[8px] font-black">HOME</span>
             </button>
-            <button onclick="navigate('history')" id="btn-history" class="nav-btn opacity-40 flex flex-col items-center gap-1">
-                <i class="fas fa-list-ul text-xl"></i>
-                <span class="text-[9px] font-bold">ประวัติ</span>
+            <button onclick="nav('history')" id="nav-history" class="flex flex-col items-center gap-1 opacity-40 transition-all text-blue-600">
+                <i class="fas fa-list-ul text-lg"></i>
+                <span class="text-[8px] font-black">LOGS</span>
             </button>
-            <button onclick="navigate('add')" id="btn-add" class="w-14 h-14 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-500/40 flex items-center justify-center -translate-y-4">
-                <i class="fas fa-plus text-xl"></i>
+            <button onclick="nav('add')" class="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg shadow-blue-600/40 -translate-y-4 hover:scale-110 active:scale-90 transition">
+                <i class="fas fa-plus"></i>
             </button>
-            <button onclick="navigate('goal')" id="btn-goal" class="nav-btn opacity-40 flex flex-col items-center gap-1">
-                <i class="fas fa-bullseye text-xl"></i>
-                <span class="text-[9px] font-bold">เป้าหมาย</span>
+            <button onclick="nav('goal')" id="nav-goal" class="flex flex-col items-center gap-1 opacity-40 transition-all text-blue-600">
+                <i class="fas fa-bullseye text-lg"></i>
+                <span class="text-[8px] font-black">GOAL</span>
             </button>
-            <button onclick="navigate('settings')" id="btn-settings" class="nav-btn opacity-40 flex flex-col items-center gap-1">
-                <i class="fas fa-user-gear text-xl"></i>
-                <span class="text-[9px] font-bold">ตั้งค่า</span>
+            <button onclick="nav('settings')" id="nav-settings" class="flex flex-col items-center gap-1 opacity-40 transition-all text-blue-600">
+                <i class="fas fa-sliders text-lg"></i>
+                <span class="text-[8px] font-black">CONFIG</span>
             </button>
         </nav>
+
     </div>
 
     <script>
-        // CONFIGURATION
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwcNmHJWQytDdEyjW1Bu_34AXtNZCKN7NmtloA297GAYb7RaRfnoNUQffkzR3U_PvUdVg/exec";
-        
+        // CONFIG - นำ URL App Script ของคุณมาใส่ที่นี่
+        const API_URL = "https://script.google.com/macros/s/AKfycbwcNmHJWQytDdEyjW1Bu_34AXtNZCKN7NmtloA297GAYb7RaRfnoNUQffkzR3U_PvUdVg/exec";
+
         // APP STATE
         let state = {
-            savings: [],
-            goal: 10000,
-            user: { name: "Google User", avatar: "https://lh3.googleusercontent.com/a/default-user=s120-c" },
+            transactions: [],
+            goal: 5000,
+            user: { name: "คุณออมทอง", avatar: "https://lh3.googleusercontent.com/a/default-user=s120-c" },
             isDark: false
         };
 
-        let chart = null;
+        let myChart = null;
 
-        // INITIALIZATION
-        window.addEventListener('DOMContentLoaded', () => {
+        // INITIALIZE
+        window.onload = () => {
             loadLocal();
             initChart();
-            navigate('dashboard');
-            document.getElementById('input-date').valueAsDate = new Date();
+            nav('dashboard');
+            document.getElementById('inp-date').valueAsDate = new Date();
             
-            // Auto Sync on Start
-            syncFromCloud(true);
-        });
+            // Auto Sync
+            syncData(true);
+        };
 
-        function navigate(view) {
+        // NAVIGATION
+        function nav(view) {
             document.querySelectorAll('.view-content').forEach(v => v.classList.add('hidden'));
             document.getElementById(`view-${view}`).classList.remove('hidden');
             
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.add('opacity-40'));
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('nav-active'));
-            
-            const activeBtn = document.getElementById(`btn-${view}`);
-            if (activeBtn) {
-                activeBtn.classList.remove('opacity-40');
-                activeBtn.classList.add('nav-active');
-            }
+            document.querySelectorAll('nav button').forEach(b => b.classList.add('opacity-40'));
+            const activeNav = document.getElementById(`nav-${view}`);
+            if(activeNav) activeNav.classList.remove('opacity-40');
 
-            if(view === 'dashboard') refreshDashboard();
-            if(view === 'history') refreshHistory();
+            if(view === 'dashboard') updateDashboard();
+            if(view === 'history') renderHistory();
+            window.scrollTo(0,0);
         }
 
-        function toggleMode() {
+        // THEME
+        function toggleDark() {
             state.isDark = !state.isDark;
             applyTheme();
             saveLocal();
         }
 
         function applyTheme() {
-            if (state.isDark) {
+            if(state.isDark) {
                 document.body.classList.replace('light', 'dark');
                 document.documentElement.classList.add('dark');
             } else {
@@ -304,246 +340,245 @@
             }
         }
 
-        function selectCat(btn) {
-            document.querySelectorAll('.cat-btn').forEach(b => b.className = "cat-btn p-3 bg-slate-100 dark:bg-slate-700 rounded-xl text-sm font-medium");
-            btn.className = "cat-btn p-3 bg-blue-500 text-white rounded-xl text-sm font-medium";
-            document.getElementById('selected-category').value = btn.innerText;
-        }
+        // CORE LOGIC - SAVE
+        function saveTransaction() {
+            const amount = parseFloat(document.getElementById('inp-amount').value);
+            const cat = document.getElementById('inp-cat').value;
+            const note = document.getElementById('inp-note').value;
+            const date = document.getElementById('inp-date').value;
 
-        // DATABASE OPERATIONS
-        function handleSave() {
-            const amount = parseFloat(document.getElementById('input-amount').value);
-            const category = document.getElementById('selected-category').value;
-            const note = document.getElementById('input-note').value;
-            const date = document.getElementById('input-date').value;
-
-            if (!amount || amount <= 0) {
-                return Swal.fire({ icon: 'error', title: 'ข้อมูลไม่ครบ', text: 'กรุณาระบุจำนวนเงินที่ถูกต้อง' });
+            if(!amount || amount <= 0) {
+                return Swal.fire({ icon: 'error', title: 'กรุณาระบุจำนวนเงิน', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
             }
 
-            // UI Feedback: Success Immediately
+            // INSTANT SUCCESS FEEDBACK
             Swal.fire({
                 icon: 'success',
-                title: 'บันทึกสำเร็จ!',
-                text: 'ข้อมูลถูกส่งไปที่ระบบเรียบร้อยแล้ว',
-                timer: 1500,
-                showConfirmButton: false
+                title: 'บันทึกสำเร็จทันที!',
+                showConfirmButton: false,
+                timer: 1000,
+                toast: true,
+                position: 'top-end'
             });
 
-            const newItem = {
-                amount, category, note, date, 
+            const newTx = {
+                id: "LOCAL-" + Date.now(),
+                amount: amount,
+                category: cat,
+                note: note,
+                date: date,
                 timestamp: new Date().toISOString(),
                 user: state.user.name
             };
 
-            // Local Update
-            state.savings.push(newItem);
+            state.transactions.push(newTx);
             saveLocal();
-            
-            // Background Cloud Sync (JSONP)
-            const callback = 'cb_' + Date.now();
+
+            // Background JSONP Sync
+            const cb = "save_" + Date.now();
             const script = document.createElement('script');
-            window[callback] = (res) => {
-                delete window[callback];
-                document.body.removeChild(script);
-            };
-            script.src = `${SCRIPT_URL}?action=save&amount=${amount}&category=${encodeURIComponent(category)}&note=${encodeURIComponent(note)}&date=${date}&user=${encodeURIComponent(state.user.name)}&callback=${callback}`;
+            script.src = `${API_URL}?action=save&amount=${amount}&category=${encodeURIComponent(cat)}&note=${encodeURIComponent(note)}&date=${date}&user=${encodeURIComponent(state.user.name)}&callback=${cb}`;
             document.body.appendChild(script);
 
-            // Reset Form & Back to Dash
-            document.getElementById('input-amount').value = '';
-            document.getElementById('input-note').value = '';
-            navigate('dashboard');
+            // UI Reset
+            document.getElementById('inp-amount').value = '';
+            document.getElementById('inp-note').value = '';
+            nav('dashboard');
         }
 
-        function syncFromCloud(silent = false) {
-            if(!silent) {
-                Swal.fire({ title: 'กำลังดึงข้อมูลล่าสุด...', didOpen: () => Swal.showLoading() });
-            }
+        // SYNC FROM CLOUD
+        function syncData(isSilent = false) {
+            if(!isSilent) Swal.fire({ title: 'กำลังดึงข้อมูลจาก Cloud...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
-            const callback = 'fetch_' + Date.now();
+            const cb = "fetch_" + Date.now();
             const script = document.createElement('script');
-            window[callback] = (res) => {
-                delete window[callback];
+            window[cb] = (res) => {
+                delete window[cb];
                 document.body.removeChild(script);
-                
-                if (res.status === 'success' && res.data) {
-                    state.savings = res.data;
+                if(res.status === 'success') {
+                    // Merge logic: Combine local and cloud, filter duplicates by timestamp or ID if possible
+                    // In this version, we trust Cloud as Source of Truth for overall balance
+                    state.transactions = res.data;
                     saveLocal();
-                    refreshDashboard();
-                    if(!silent) Swal.close();
+                    updateDashboard();
+                    if(!isSilent) Swal.fire({ icon: 'success', title: 'อัปเดตข้อมูลแล้ว', timer: 1000, showConfirmButton: false });
                 }
             };
-            script.src = `${SCRIPT_URL}?action=fetch&callback=${callback}`;
+            script.src = `${API_URL}?action=fetch&callback=${cb}`;
             document.body.appendChild(script);
         }
 
-        function refreshDashboard() {
-            const total = state.savings.reduce((sum, item) => sum + parseFloat(item.amount), 0);
-            document.getElementById('total-savings').innerText = total.toLocaleString(undefined, {minimumFractionDigits: 2});
+        // RENDER UI
+        function updateDashboard() {
+            const total = state.transactions.reduce((acc, curr) => acc + parseFloat(curr.amount), 0);
+            document.getElementById('stat-total').innerText = total.toLocaleString(undefined, {minimumFractionDigits: 2});
+            document.getElementById('display-name').innerText = "สวัสดี, " + state.user.name;
+            document.getElementById('profile-img').src = state.user.avatar;
+            document.getElementById('stat-goal').innerText = state.goal.toLocaleString();
             
-            // Profile Display
-            document.getElementById('user-name').innerText = state.user.name;
-            document.getElementById('user-avatar').src = state.user.avatar;
-
-            // Goal
-            const pct = Math.min((total / state.goal) * 100, 100);
-            document.getElementById('goal-val').innerText = state.goal.toLocaleString();
-            document.getElementById('goal-pct').innerText = Math.round(pct) + '%';
-            document.getElementById('goal-bar').style.width = pct + '%';
+            const pct = Math.min(Math.round((total / state.goal) * 100), 100);
+            document.getElementById('stat-pct').innerText = pct;
+            document.getElementById('goal-progress').style.width = pct + "%";
 
             // Rank Logic
-            let rank = "BRONZE";
-            let rankClass = "bg-orange-400";
-            if (total >= 100000) { rank = "REGEN"; rankClass = "bg-purple-600 shadow-lg shadow-purple-500/50"; }
-            else if (total >= 50000) { rank = "DIAMOND"; rankClass = "bg-cyan-400 shadow-lg shadow-cyan-500/50"; }
-            else if (total >= 10000) { rank = "PLATINUM"; rankClass = "bg-slate-300 text-slate-800"; }
-            else if (total >= 5000) { rank = "GOLD"; rankClass = "bg-yellow-500"; }
-            else if (total >= 1000) { rank = "SILVER"; rankClass = "bg-slate-400"; }
-            
-            const badge = document.getElementById('rank-badge');
-            badge.innerText = rank;
-            badge.className = `rank-badge ${rankClass} text-white`;
+            const rankTag = document.getElementById('rank-tag');
+            if(total >= 100000) { rankTag.innerText = "REGEN"; rankTag.className = "text-[9px] font-black px-2 py-0.5 rounded-full text-white uppercase tracking-wider rank-regen"; }
+            else if(total >= 50000) { rankTag.innerText = "DIAMOND"; rankTag.className = "text-[9px] font-black px-2 py-0.5 rounded-full text-white uppercase tracking-wider rank-diamond"; }
+            else if(total >= 15000) { rankTag.innerText = "PLATINUM"; rankTag.className = "text-[9px] font-black px-2 py-0.5 rounded-full text-white uppercase tracking-wider rank-platinum"; }
+            else if(total >= 5000) { rankTag.innerText = "GOLD"; rankTag.className = "text-[9px] font-black px-2 py-0.5 rounded-full text-white uppercase tracking-wider rank-gold"; }
+            else if(total >= 1000) { rankTag.innerText = "SILVER"; rankTag.className = "text-[9px] font-black px-2 py-0.5 rounded-full text-white uppercase tracking-wider rank-silver"; }
+            else { rankTag.innerText = "BRONZE"; rankTag.className = "text-[9px] font-black px-2 py-0.5 rounded-full text-white uppercase tracking-wider rank-bronze"; }
 
-            // AI Mali logic
-            const maliText = document.getElementById('ai-mali-text');
-            if (total === 0) maliText.innerText = "สวัสดีค่ะ! มะลิพร้อมช่วยวิเคราะห์ เริ่มบันทึกการออมครั้งแรกกันเลยนะคะ";
-            else if (pct >= 100) maliText.innerText = "สุดยอดไปเลย! คุณทำสำเร็จตามเป้าหมายแล้ว มะลิแนะนำให้ลองขยับเป้าหมายใหม่ที่ท้าทายขึ้นนะคะ";
-            else if (pct < 30) maliText.innerText = "มะลิพบว่าคุณพึ่งเริ่มเดินทาง พยายามหยอดกระปุกอย่างสม่ำเสมอ แล้วความสำเร็จจะตามมาค่ะ!";
-            else maliText.innerText = "วินัยการออมของคุณสม่ำเสมอมากค่ะ! มะลิวิเคราะห์แล้วว่าคุณจะถึงเป้าหมายภายในเวลาอันสั้นนี้แน่นอน";
+            // AI Mali Messages
+            const msg = document.getElementById('mali-msg');
+            if(total === 0) msg.innerText = "ยินดีต้อนรับค่ะ! เริ่มออมวันนี้เพื่อสร้างอนาคตที่สดใสนะคะ มะลิพร้อมช่วยวิเคราะห์เสมอค่ะ";
+            else if(pct >= 100) msg.innerText = "สุดยอดไปเลยค่ะ! คุณออมถึงเป้าหมายแล้ว มะลิแนะนำให้ขยับเป้าหมายให้สูงขึ้นเพื่อความท้าทายใหม่นะคะ";
+            else if(pct > 80) msg.innerText = "ใกล้ความจริงแล้วค่ะ! อีกเพียงนิดเดียวก็จะถึงเป้าหมาย ฿" + state.goal.toLocaleString() + " แล้ว สู้ๆ นะคะ";
+            else msg.innerText = "วันนี้คุณออมไปแล้วหรือยังคะ? ปัจจุบันสะสมได้ " + pct + "% ของเป้าหมายแล้ว วินัยคือหัวใจสำคัญค่ะ";
 
-            updateChartData();
+            updateChart();
         }
 
-        function refreshHistory() {
-            const container = document.getElementById('history-container');
-            const now = new Date();
-            
-            // Filter: Show only items from last 24 hours
-            const dayAgo = now.getTime() - (24 * 60 * 60 * 1000);
-            const recent = state.savings.filter(item => {
-                const itemTime = new Date(item.timestamp || item.date).getTime();
-                return itemTime > dayAgo;
+        function renderHistory() {
+            const container = document.getElementById('history-list');
+            const now = new Date().getTime();
+            const dayMs = 24 * 60 * 60 * 1000;
+
+            // Filter items older than 24 hours (only for UI display, data stays in Sheet)
+            const recent = state.transactions.filter(t => {
+                const tTime = new Date(t.timestamp || t.date).getTime();
+                return (now - tTime) < dayMs;
             }).sort((a,b) => new Date(b.timestamp || b.date) - new Date(a.timestamp || a.date));
 
-            if (recent.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-12 opacity-30">
-                        <i class="fas fa-box-open text-4xl mb-2"></i>
-                        <p class="text-xs">ไม่มีรายการออมใน 24 ชั่วโมงที่ผ่านมา</p>
-                    </div>`;
+            if(recent.length === 0) {
+                container.innerHTML = `<div class="text-center py-20 opacity-20"><i class="fas fa-ghost text-4xl mb-2"></i><p class="text-[10px] font-bold uppercase tracking-widest">No Logs in 24h</p></div>`;
                 return;
             }
 
-            container.innerHTML = recent.map(item => `
-                <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl flex items-center justify-between shadow-sm border border-slate-50 dark:border-slate-700">
+            container.innerHTML = recent.map(t => `
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-3xl flex items-center justify-between border border-slate-50 dark:border-slate-700 shadow-sm">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-blue-50 dark:bg-blue-900/40 rounded-xl flex items-center justify-center text-blue-500">
+                        <div class="w-10 h-10 bg-blue-50 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center text-blue-600">
                             <i class="fas fa-coins"></i>
                         </div>
                         <div>
-                            <p class="font-bold text-sm">฿${parseFloat(item.amount).toLocaleString()}</p>
-                            <p class="text-[10px] opacity-50">${item.category} • ${item.note || 'ไม่มีหมายเหตุ'}</p>
+                            <p class="font-black text-sm text-blue-600">฿${parseFloat(t.amount).toLocaleString()}</p>
+                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">${t.category} • ${t.note || '-'}</p>
                         </div>
                     </div>
                     <div class="text-right">
-                        <p class="text-[10px] font-bold text-blue-500">${new Date(item.timestamp || item.date).toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'})}</p>
-                        <p class="text-[8px] opacity-30">${new Date(item.timestamp || item.date).toLocaleDateString('th-TH')}</p>
+                        <p class="text-[10px] font-bold">${new Date(t.timestamp || t.date).toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'})}</p>
+                        <p class="text-[8px] opacity-30 font-bold">${new Date(t.timestamp || t.date).toLocaleDateString('th-TH')}</p>
                     </div>
                 </div>
             `).join('');
         }
 
-        function updateGoal() {
-            const val = parseFloat(document.getElementById('input-goal').value);
-            if (val > 0) {
-                state.goal = val;
+        // UTILS
+        function setCat(val, btn) {
+            document.querySelectorAll('.cat-opt').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('inp-cat').value = val;
+        }
+
+        function saveGoal() {
+            const g = parseFloat(document.getElementById('inp-goal-val').value);
+            if(g > 0) {
+                state.goal = g;
                 saveLocal();
-                Swal.fire('สำเร็จ', 'อัปเดตเป้าหมายใหม่แล้ว', 'success');
-                navigate('dashboard');
+                Swal.fire({ icon: 'success', title: 'ตั้งเป้าหมายใหม่แล้ว!', timer: 1500, showConfirmButton: false });
+                nav('dashboard');
             }
         }
 
-        function saveProfile() {
-            state.user.name = document.getElementById('set-name').value || state.user.name;
-            state.user.avatar = document.getElementById('set-avatar').value;
-            saveLocal();
-            refreshDashboard();
-            Swal.fire({ icon: 'success', title: 'อัปเดตสำเร็จ', timer: 1000, showConfirmButton: false });
+        function updateProfile() {
+            const name = document.getElementById('set-name').value;
+            if(name) {
+                state.user.name = name;
+                saveLocal();
+                updateDashboard();
+                Swal.fire({ icon: 'success', title: 'บันทึกโปรไฟล์แล้ว', timer: 1000, showConfirmButton: false });
+            }
         }
 
-        function confirmClear() {
+        function setAvatar(url) {
+            state.user.avatar = url;
+            saveLocal();
+            updateDashboard();
+            document.querySelectorAll('img.rounded-lg').forEach(img => img.classList.replace('border-blue-500', 'border-transparent'));
+            event.target.classList.replace('border-transparent', 'border-blue-500');
+        }
+
+        function clearAll() {
             Swal.fire({
-                title: 'ยืนยันการล้างข้อมูล?',
+                title: 'ยืนยันล้างข้อมูล?',
                 text: "ข้อมูลทั้งในเครื่องและ Cloud จะถูกลบถาวร!",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#ef4444',
-                confirmButtonText: 'ลบเลย',
+                confirmButtonText: 'ใช่, ลบทั้งหมด',
                 cancelButtonText: 'ยกเลิก'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    state.savings = [];
+            }).then((res) => {
+                if(res.isConfirmed) {
+                    state.transactions = [];
                     saveLocal();
-                    
-                    const callback = 'clear_' + Date.now();
+                    const cb = "clear_" + Date.now();
                     const script = document.createElement('script');
-                    script.src = `${SCRIPT_URL}?action=clear&callback=${callback}`;
+                    script.src = `${API_URL}?action=clear&callback=${cb}`;
                     document.body.appendChild(script);
-                    
-                    refreshDashboard();
-                    Swal.fire('ลบแล้ว!', 'ระบบถูกรีเซ็ตเรียบร้อย', 'success');
+                    updateDashboard();
+                    Swal.fire('ล้างข้อมูลเรียบร้อย', '', 'success');
                 }
             });
         }
 
-        // CHART UTILS
+        // CHART
         function initChart() {
-            const ctx = document.getElementById('savingsChart').getContext('2d');
-            chart = new Chart(ctx, {
+            const ctx = document.getElementById('maliChart').getContext('2d');
+            myChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัส', 'ศุกร์', 'เสาร์'],
+                    labels: ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'],
                     datasets: [{
-                        label: 'เงินออม',
-                        data: [0, 0, 0, 0, 0, 0, 0],
+                        label: 'Saving',
+                        data: [0,0,0,0,0,0,0],
                         backgroundColor: '#3b82f6',
-                        borderRadius: 8,
-                        barThickness: 12
+                        borderRadius: 8
                     }]
                 },
                 options: {
                     responsive: true,
                     plugins: { legend: { display: false } },
                     scales: {
-                        y: { beginAtZero: true, grid: { display: false }, ticks: { font: { size: 9 } } },
-                        x: { grid: { display: false }, ticks: { font: { size: 9 } } }
+                        y: { display: false },
+                        x: { grid: { display: false }, ticks: { font: { size: 9, weight: 'bold' } } }
                     }
                 }
             });
         }
 
-        function updateChartData() {
-            if(!chart) return;
-            const dailyData = [0,0,0,0,0,0,0];
-            state.savings.forEach(item => {
-                const day = new Date(item.timestamp || item.date).getDay();
-                dailyData[day] += parseFloat(item.amount);
+        function updateChart() {
+            if(!myChart) return;
+            const weekData = [0,0,0,0,0,0,0];
+            state.transactions.forEach(t => {
+                const day = new Date(t.timestamp || t.date).getDay();
+                weekData[day] += parseFloat(t.amount);
             });
-            chart.data.datasets[0].data = dailyData;
-            chart.update();
+            myChart.data.datasets[0].data = weekData;
+            myChart.update();
         }
 
-        // STORAGE UTILS
-        function saveLocal() { localStorage.setItem('novasave_v22_db', JSON.stringify(state)); }
+        // STORAGE
+        function saveLocal() {
+            localStorage.setItem('novasave_v24_db', JSON.stringify(state));
+        }
         function loadLocal() {
-            const data = localStorage.getItem('novasave_v22_db');
-            if (data) {
-                state = {...state, ...JSON.parse(data)};
+            const data = localStorage.getItem('novasave_v24_db');
+            if(data) {
+                state = JSON.parse(data);
                 applyTheme();
                 document.getElementById('set-name').value = state.user.name;
-                document.getElementById('set-avatar').value = state.user.avatar;
-                document.getElementById('input-goal').value = state.goal;
+                document.getElementById('inp-goal-val').value = state.goal;
             }
         }
     </script>
